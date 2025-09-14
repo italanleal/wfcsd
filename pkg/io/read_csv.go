@@ -3,7 +3,6 @@ package io
 import (
 	"encoding/csv"
 	"fmt"
-	"math"
 	"os"
 	"strconv"
 )
@@ -36,7 +35,6 @@ func readCSV(path string) (*DataFrame, error) {
 			if err != nil {
 				return nil, fmt.Errorf("%s | invalid float at row %d col %d: %v", moduleName, i, j, err)
 			}
-			f = math.Round(f*1) / 1 //rounding values due to the short amount of samples from dataset
 			row[j] = f
 		}
 		data[i-1] = row

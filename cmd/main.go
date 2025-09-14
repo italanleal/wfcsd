@@ -3,70 +3,71 @@ package main
 import (
 	"fmt"
 	"log"
+	"sort"
 
 	"github.com/italanleal/wfcsd/pkg/io"
-	"github.com/italanleal/wfcsd/pkg/math"
 	"github.com/italanleal/wfcsd/pkg/sd"
 )
 
 func main() {
-	// Load the CSV into a DataFrame
 	df, err := io.ReadCSV("data/anemia_dataset.csv")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Columns:", df.Header)
+	err = df.BuildBeams()
 
-	numCols := len(df.Header)
-	columns := make([][]float64, numCols)
-
-	// Extract each column
-	for j := 0; j < numCols; j++ {
-		col, err := df.ColumnByName(df.Header[j])
-		if err != nil {
-			log.Fatal(err)
-		}
-		columns[j] = col
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	// Compute correlation matrix with column names
-	fmt.Printf("%12s", "") // top-left empty
-	for _, name := range df.Header {
-		fmt.Printf("%12s", name)
-	}
-	fmt.Println()
+	tileList := sd.ExtractPatternsFromPairs(df, sd.WeaklyCorrelatedPairs(df, 0.5, "p"), "p")
 
-	for i, rowName := range df.Header {
-		fmt.Printf("%12s", rowName)
-		for j := 0; j < numCols; j++ {
-			corrVal := math.Correlation(columns[i], columns[j])
-			fmt.Printf("%12.6f ", corrVal)
-		}
-		fmt.Println()
+	err = sd.ComputeWRAcc(df, "p", tileList)
+
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	pairs := sd.WeaklyCorrelatedPairs(df, 0.5, "p")
+	sort.Slice(tileList, func(i, j int) bool {
+		return tileList[i].WRAcc > tileList[j].WRAcc
+	})
 
-	// Iterate over all pairs
-	for idx, p := range pairs {
-		col1 := p[0]
-		col2 := p[1]
-		fmt.Printf("Pair %d: %s <-> %s\n", idx+1, col1, col2)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	// Initialize tileList to store all patterns
-	tileList := sd.ExtractPatternsFromPairs(df, pairs, "p")
+	selectedPatterns := sd.SelectTopPatterns(tileList, 20)
 
-	for i, pat := range tileList {
-		fmt.Printf(
-			"Pattern %d: %s=%.2f <-> %s=%.2f | Freq: %d/%d\n",
-			i+1,
-			pat.Items[0].Attr, pat.Items[0].Value,
-			pat.Items[1].Attr, pat.Items[1].Value,
-			len(pat.Index),
-			pat.Freq,
-		)
+	fmt.Println("Selected patterns")
+	for _, pat := range selectedPatterns {
+		sd.PrintPattern(df, pat)
+
+		// Se quiser depurar os índices reais, descomente:
+		// fmt.Printf("    Positives: %v\n", pat.IndexP)
+		// fmt.Printf("    Negatives: %v\n", pat.IndexN)
+	}
+
+	collapsedPatterns := sd.PopulationCollapseFunction(df, selectedPatterns, tileList)
+	collapsedPatterns = sd.PopulationCollapseFunction(df, collapsedPatterns, tileList)
+
+	err = sd.ComputeWRAcc(df, "p", collapsedPatterns)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// sort.Slice(collapsedPatterns, func(i, j int) bool {
+	// 	return collapsedPatterns[i].WRAcc > collapsedPatterns[j].WRAcc
+	// })
+
+	fmt.Println("Collapsed patterns")
+	for _, pat := range collapsedPatterns {
+		sd.PrintPattern(df, pat)
+
+		// Se quiser depurar os índices reais, descomente:
+		// fmt.Printf("    Positives: %v\n", pat.IndexP)
+		// fmt.Printf("    Negatives: %v\n", pat.IndexN)
 	}
 
 }
