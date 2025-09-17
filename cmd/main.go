@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	df, err := io.ReadCSV("data/anemia_dataset.csv")
+	df, err := io.ReadCSV("data/alon-modified.csv")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,7 +37,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	selectedPatterns := sd.SelectTopPatterns(tileList, 20)
+	selectedPatterns := sd.SelectTopPatterns(tileList, 30)
 
 	fmt.Println("Selected patterns")
 	for _, pat := range selectedPatterns {
@@ -57,9 +57,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// sort.Slice(collapsedPatterns, func(i, j int) bool {
-	// 	return collapsedPatterns[i].WRAcc > collapsedPatterns[j].WRAcc
-	// })
+	sort.Slice(collapsedPatterns, func(i, j int) bool {
+		return collapsedPatterns[i].WRAcc > collapsedPatterns[j].WRAcc
+	})
 
 	fmt.Println("Collapsed patterns")
 	for _, pat := range collapsedPatterns {

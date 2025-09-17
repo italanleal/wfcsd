@@ -205,4 +205,10 @@ func PrintPattern(df *io.DataFrame, pat Pattern) {
 		len(pat.IndexP),
 		len(pat.IndexN),
 	)
+
+	// fmt.Printf(
+	// 	"# %s | WRAcc: %.4f\n",
+	// 	patternDesc,
+	// 	pat.WRAcc,
+	// )
 }
