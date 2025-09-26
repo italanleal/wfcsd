@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	df, err := io.ReadCSV("data/alon-modified.csv")
+	df, err := io.ReadCSV("data/anemia_dataset.csv")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,6 +49,7 @@ func main() {
 	}
 
 	collapsedPatterns := sd.PopulationCollapseFunction(df, selectedPatterns, tileList)
+	collapsedPatterns = sd.PopulationCollapseFunction(df, collapsedPatterns, tileList)
 	collapsedPatterns = sd.PopulationCollapseFunction(df, collapsedPatterns, tileList)
 
 	err = sd.ComputeWRAcc(df, "p", collapsedPatterns)

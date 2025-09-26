@@ -87,35 +87,35 @@ func MergePatterns(p1, p2 Pattern) (Pattern, bool) {
 	return newPattern, true
 }
 
-// func ComputeMergeCandidates(patterns []Pattern, target Pattern) []int {
-// 	var candidates []int
+func ComputeMergeCandidates(patterns []Pattern, target Pattern) []int {
+	var candidates []int
 
-// 	for i, p := range patterns {
+	for i, p := range patterns {
 
-// 		// Regra: pelo menos um deve ter exatamente 2 items
-// 		if len(p.Items) != 2 && len(target.Items) < 2 {
-// 			continue
-// 		}
+		// Regra: pelo menos um deve ter exatamente 2 items
+		if len(p.Items) != 2 && len(target.Items) < 2 {
+			continue
+		}
 
-// 		// Contar itens comuns
-// 		commonCount := 0
-// 		for _, i1 := range target.Items {
-// 			for _, i2 := range p.Items {
-// 				if i1.Attr == i2.Attr && i1.Value == i2.Value { // compara Attr e Value
-// 					commonCount++
-// 				}
-// 			}
+		// Contar itens comuns
+		commonCount := 0
+		for _, i1 := range target.Items {
+			for _, i2 := range p.Items {
+				if i1 == i2 { // compara Attr e Value
+					commonCount++
+				}
+			}
 
-// 		}
+		}
 
-// 		// Regra: deve ter exatamente 1 item comum
-// 		if commonCount == 1 {
-// 			candidates = append(candidates, i)
-// 		}
-// 	}
+		// Regra: deve ter exatamente 1 item comum
+		if commonCount == 1 {
+			candidates = append(candidates, i)
+		}
+	}
 
-// 	return candidates
-// }
+	return candidates
+}
 
 // devolve os índices de patterns que contêm um item específico
 func candidatesForItem(patterns []Pattern, item Item) []int {
@@ -131,7 +131,7 @@ func candidatesForItem(patterns []Pattern, item Item) []int {
 
 func containsItem(items []Item, item Item) bool {
 	for _, it := range items {
-		if it.Attr == item.Attr && it.Value == item.Value {
+		if it == item {
 			return true
 		}
 	}
@@ -156,35 +156,34 @@ func hasAttrCollision(candidate, target []Item, anchor Item) bool {
 	return false
 }
 
-func ComputeMergeCandidates(patterns []Pattern, target Pattern) []int {
-	// conjunto (set) para evitar duplicação
-	seen := make(map[int]bool)
+// func ComputeMergeCandidates(patterns []Pattern, target Pattern) []int {
+// 	// conjunto (set) para evitar duplicação
+// 	seen := make(map[int]bool)
 
-	for _, tItem := range target.Items {
-		cands := candidatesForItem(patterns, tItem)
+// 	for _, tItem := range target.Items {
+// 		cands := candidatesForItem(patterns, tItem)
 
-		for _, ci := range cands {
-			// além de conter o item, checa colisão com os demais itens do target
-			if !hasAttrCollision(patterns[ci].Items, target.Items, tItem) {
-				seen[ci] = true
-			}
-		}
-	}
+// 		for _, ci := range cands {
+// 			// além de conter o item, checa colisão com os demais itens do target
+// 			if !hasAttrCollision(patterns[ci].Items, target.Items, tItem) {
+// 				seen[ci] = true
+// 			}
+// 		}
+// 	}
 
-	// converte o set em slice
-	result := make([]int, 0, len(seen))
-	for i := range seen {
-		result = append(result, i)
-	}
-	return result
-}
+// 	// converte o set em slice
+// 	result := make([]int, 0, len(seen))
+// 	for i := range seen {
+// 		result = append(result, i)
+// 	}
+// 	return result
+// }
 
 func PrintPattern(df *io.DataFrame, pat Pattern) {
 	// Monta as descrições de cada item
 	itemStrs := make([]string, len(pat.Items))
 	for j, item := range pat.Items {
-		bs := df.DiscretScales[item.Attr]
-		min, max := bs.BeamBounds(item.Value)
+		min, max := item.Min, item.Max
 		itemStrs[j] = fmt.Sprintf("%s [%.2f, %.2f]", item.Attr, min, max)
 	}
 
